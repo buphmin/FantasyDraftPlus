@@ -11,6 +11,10 @@ class UserController {
   async getUser({params}) {
     return await User.findOrFail(params.id);
   }
+
+  async getUserId({auth}) {
+    return auth.user.id;
+  }
 }
 
 module.exports = UserController;

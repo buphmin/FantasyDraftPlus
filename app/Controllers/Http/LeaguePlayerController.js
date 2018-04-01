@@ -4,6 +4,8 @@ const LeaguePlayer = use('App/Models/LeaguePlayer');
 const Team = use('App/Models/Team');
 const LeaguePositionLimit = use('App/Models/LeaguePositionLimit');
 const League = use('App/Models/League');
+// const User = use ('App/Models/User');
+const DraftOrder = use('App/Models/DraftOrder');
 const Database = use('Database');
 
 let orderToColumnName = {
@@ -36,8 +38,8 @@ class LeaguePlayerController {
         .with('player.positions')
         .whereHas('player', (builder) => {
           builder.whereRaw(`
-          (player.name like '%${queryParams.name}%')
-          `);
+          (player.name like ?)
+          `, `%${queryParams.name}%`);
         })
         ;
 
@@ -51,6 +53,7 @@ class LeaguePlayerController {
     }
 
     builder
+      .select('league_player.*')
       .innerJoin('player', 'player.id', 'league_player.player_id')
       .innerJoin('player_player_position', 'player.id', 'player_player_position.player_id')
       .leftJoin('team', 'team.id', 'league_player.team_id')
@@ -88,6 +91,7 @@ class LeaguePlayerController {
     let team = queryParams['team'];
 
     if(team !== undefined) {
+      team = parseInt(team);
       let league = await League
         .query()
         .where('id', '=', params.league)
@@ -95,6 +99,15 @@ class LeaguePlayerController {
 
       if(league.draft_live === 1) {
         let isUserOnClock = await this.checkOnClock(team, userId);
+
+        if(isUserOnClock !== false) {
+          return this.handleAddPlayerNormal(leaguePlayerId, userId, team, response, league.draft_live === 1, isUserOnClock);
+        } else {
+          response.status(400);
+          return {
+            error: 'You are not on the clock'
+          }
+        }
       } else {
         return this.handleAddPlayerNormal(leaguePlayerId, userId, team, response);
       }
@@ -103,7 +116,7 @@ class LeaguePlayerController {
     }
   }
 
-  async handleAddPlayerNormal(leaguePlayerId, userId, newTeamId, response) {
+  async handleAddPlayerNormal(leaguePlayerId, userId, newTeamId, response, draftLive = false, draftOrder = null) {
     let currentLeaguePlayer = await LeaguePlayer
       .query()
       .with('player')
@@ -123,13 +136,69 @@ class LeaguePlayerController {
       }
     } else {
       currentLeaguePlayer.team_id = newTeamId;
-      await currentLeaguePlayer.save();
+
+      if(draftLive) {
+        const transaction = await Database.beginTransaction();
+
+        try {
+          await currentLeaguePlayer.save(transaction);
+
+          draftOrder.team_id = newTeamId;
+          draftOrder.player_selected_id = currentLeaguePlayer.id;
+          draftOrder.end_time = new Date();
+          await draftOrder.save(transaction);
+
+          let nextOrder = await DraftOrder
+            .query()
+            .whereRaw('end_time is null')
+            .whereRaw('player_selected_id is null')
+            .orderBy('pick_number', 'asc')
+            .first();
+
+          if(nextOrder) {
+            let startTime = new Date();
+            let endTime = new Date();
+            endTime.setDate(startTime.getDate() + 1);
+            nextOrder.start_time = startTime;
+            nextOrder.end_time = endTime;
+            await nextOrder.save(transaction);
+          }
+
+          transaction.commit()
+        } catch(e) {
+          transaction.rollback();
+          throw e;
+        }
+
+
+      } else {
+        await currentLeaguePlayer.save();
+      }
+
       return;
     }
   }
 
   async checkOnClock(teamId, userId) {
+    let rows = await Team
+      .query()
+      .where('id', '=', teamId)
+      .where('user_id', '=', userId)
+      .fetch();
 
+    //if you dont own this team.
+    if(rows.length === 0) {
+      return false;
+    } else {
+      let order = await DraftOrder
+        .query()
+        .where('end_time', '>=', new Date())
+        .whereRaw('player_selected_id is null')
+        .orderBy('pick_number', 'asc')
+        .first();
+
+      return order;
+    }
   }
 
   async isWithinPositionLimits(jsonLeaguePlayer, teamId) {
