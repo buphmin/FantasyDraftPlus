@@ -45,6 +45,18 @@ module.exports = {
   | npm i --save mysql
   |
   */
+  // mysql2: {
+  //   client: 'mysql2',
+  //   connection: {
+  //     host: Env.get('DB_HOST', 'fantasydraftplusdb1-0.couyfintzatq.us-east-2.rds.amazonaws.com'),
+  //     port: Env.get('DB_PORT', '3306'),
+  //     user: Env.get('DB_USER', 'root'),
+  //     password: Env.get('DB_PASSWORD', 'ctPxjDmeZc4ySKmsSzc12LgNcc24MLKC'),
+  //     database: Env.get('DB_DATABASE', 'draft')
+  //   },
+  //   debug: Env.get('DB_DEBUG', false)
+  //   // debug: true
+  // },
   mysql2: {
     client: 'mysql2',
     connection: {

@@ -1,0 +1,41 @@
+version: '3'
+services:
+    rookie-node-web:
+        network_mode: host
+#        networks:
+#            rookiefrontnetwork:
+#                ipv4_address: 178.17.2.3
+        build:
+            context: ./backend
+            dockerfile: Dockerfile
+#        ports:
+#            - "3333:3333"
+#        volumes:
+#            - $PWD:/var/www/html
+
+        container_name: rookie-front-running
+    rookie-front-web:
+#        networks:
+#            rookienodenetwork:
+#                ipv4_address: 178.17.2.3
+#        networks:
+#            rookiefrontnetwork:
+#                ipv4_address: 178.17.2.4
+        build:
+            context: ./frontend
+            dockerfile: Dockerfile
+        ports:
+            - "3333:3333"
+        network_mode: host
+#        volumes:
+#            - $PWD:/var/www/html
+
+        container_name: rookie-node-running
+
+#networks:
+#    rookiefrontnetwork:
+#        driver: bridge
+#        ipam:
+#            config:
+#                - subnet: 178.17.2.0/24
+
