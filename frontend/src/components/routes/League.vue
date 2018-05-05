@@ -1,73 +1,163 @@
 <template>
-    <v-layout class="mt-2">
-        <v-flex md10 offset-md1>
+    <v-layout row wrap class="mt-2">
+
+        <v-snackbar
+                :timeout="10000"
+                color="success"
+                :top="true"
+                v-model="showWsServerConnected"
+        >
+            Connected to server
+            <v-tooltip bottom>
+                <v-icon slot="activator">info</v-icon>
+                <span>
+                    This means the page will update itself with live data. No need to reload :)
+                </span>
+            </v-tooltip>
+            <v-btn dark flat @click.native="showWsServerConnected = false">Close</v-btn>
+        </v-snackbar>
+        <v-snackbar
+                :timeout="10000"
+                color="error"
+                :top="true"
+                v-model="showWsServerDisconnected"
+        >
+            Disconnected from server
+            <v-tooltip bottom>
+                <v-icon slot="activator">info</v-icon>
+                This means you will not receive live updates and will need to refresh page.
+            </v-tooltip>
+            <v-btn dark flat @click.native="showWsServerDisconnected = false">Close</v-btn>
+        </v-snackbar>
+
+
+        <draft-confirmation-dialog v-model.sync="modalOpen" v-bind:confirmation-message="confirmationMessage"
+                                   v-bind:callback="addPlayer"
+                                   v-bind:callback-options="addPlayerOptions"></draft-confirmation-dialog>
+
+        <v-snackbar
+                :timeout="4000"
+                color="red"
+                :top="true"
+                v-model="hasErrorMessage"
+        >
+            {{ errorText }}
+            <v-btn dark flat @click.native="hasErrorMessage = false">Close</v-btn>
+        </v-snackbar>
+
+        <v-flex sm12 md12>
             <h2>{{ league.name }}</h2>
+        </v-flex>
 
-            <v-tabs
-                    v-model="active"
-                    color="blue darken-3"
-                    dark
-                    slider-color="orange"
-            >
-                <v-tab ripple>Teams</v-tab>
-                <v-tab ripple>Players</v-tab>
-                <v-tab-item>
-                    <v-card flat>
-                        <v-card-text>
-                            <v-list>
-                                <v-list-tile avatar v-for="team of league.teams" :key="team.id" @click="">
-                                    <v-list-tile-action>
-                                    </v-list-tile-action>
-                                    <v-list-tile-content>
-                                        <v-list-tile-title>
-                                            <router-link :to="{name: 'team', params: {id: team.id}}">{{ team.name }}</router-link>
+        <v-flex sm12 md6>
+            <v-card>
+                <v-card-text>
+                    <v-tabs color="blue darken-3" dark slider-color="orange">
+                        <v-tab ripple>Draft Order</v-tab>
 
-                                        </v-list-tile-title>
-                                    </v-list-tile-content>
-                                </v-list-tile>
-                            </v-list>
-
-                        </v-card-text>
-                    </v-card>
-                </v-tab-item>
-                <v-tab-item>
-                    <v-card flat>
-                        <v-card-text>
-                            <v-card-title>
-                                <v-spacer></v-spacer>
-                                <v-text-field
-                                        append-icon="search"
-                                        label="Search"
-                                        single-line
-                                        hide-details
-                                        v-model="search"
-                                ></v-text-field>
-                            </v-card-title>
+                        <v-tab-item>
                             <v-data-table
-                                    :headers="headers"
-                                    :items="leaguePlayers"
-                                    :search="search"
-                                    :pagination.sync="pagination"
-                                    :total-items="totalLeaguePlayers"
-                                    :loading="loading"
-                                    :rows-per-page-items="[10, 25, 50]"
+                                    v-bind:headers="draftOrderHeader"
+                                    :items="draftOrderRows"
+                                    hide-actions
+                                    :disable-initial-sort="true"
                                     class="elevation-1"
                             >
-                                <template slot="items" slot-scope="props">
-                                    <td>{{ props.item.player.name }}</td>
-                                    <td>{{ props.item.player.positions.map(e => e.id).join(', ')}}</td>
-                                    <td class="">{{ props.item.player.nfl_team }}</td>
-                                    <td>{{ getTeamName(props.item) }}</td>
-                                    <td class="">
-                                        <v-btn @click="addPlayer(props.item.id)" color="blue">Add</v-btn>
+                                <template slot="items" slot-scope="draftOrder">
+                                    <td>
+                                        <span v-if="draftOrder.item.leaguePlayer !== null">{{ draftOrder.item.leaguePlayer.player.name }}</span>
                                     </td>
-
+                                    <td><span v-if="draftOrder.item.leaguePlayer !== null">{{ draftOrder.item.leaguePlayer.player.positions.map(e => e.id).join(', ')}}</span></td>
+                                    <td><span v-if="draftOrder.item.leaguePlayer !== null">{{ draftOrder.item.leaguePlayer.player.nfl_team }}</span></td>
+                                    <td><span v-if="draftOrder.item.leaguePlayer !== null">{{ draftOrder.item.team_id }}</span></td>
+                                    <td>{{ draftOrder.item.pick_number }}</td>
                                 </template>
                             </v-data-table>
-                        </v-card-text>
-                    </v-card>
-                </v-tab-item>
-            </v-tabs>
+                        </v-tab-item>
+                    </v-tabs>
+                </v-card-text>
+
+            </v-card>
+
+        </v-flex>
+
+        <v-flex sm12 md6>
+            <v-card>
+                <v-card-text>
+                    <v-tabs
+                            v-model="active"
+                            color="blue darken-3"
+                            dark
+                            slider-color="orange"
+                    >
+
+                        <v-tab ripple>Players</v-tab>
+                        <v-tab ripple>Teams</v-tab>
+
+                        <v-tab-item>
+                            <v-card flat>
+                                <v-card-text>
+                                    <v-card-title>
+                                        <v-spacer></v-spacer>
+                                        <v-text-field
+                                                append-icon="search"
+                                                label="Search"
+                                                single-line
+                                                hide-details
+                                                v-model="search"
+                                        ></v-text-field>
+                                    </v-card-title>
+                                    <v-data-table
+                                            :headers="headers"
+                                            :items="leaguePlayers"
+                                            :search="search"
+                                            :pagination.sync="pagination"
+                                            :total-items="totalLeaguePlayers"
+                                            :loading="loading"
+                                            :rows-per-page-items="[10, 25, 50]"
+                                            class="elevation-1"
+                                    >
+                                        <template slot="items" slot-scope="props">
+                                            <td>{{ props.item.player.name }}</td>
+                                            <td>{{ props.item.player.positions.map(e => e.id).join(', ')}}</td>
+                                            <td class="">{{ props.item.player.nfl_team }}</td>
+                                            <td>
+                                                <router-link v-if="props.item.team_id !== null" v-bind:to="{name: 'team', params: {id: props.item.team_id, leagueId: props.item.league_id}}">{{ getTeamName(props.item) }}</router-link>
+                                            </td>
+                                            <td class="">
+                                                <v-btn @click="updateConfirmationMessage(props.item); addPlayerOptions = {leaguePlayerId: props.item.id}; modalOpen = true"
+                                                       v-if="props.item.team_id === null"
+                                                       color="blue">Add</v-btn>
+                                            </td>
+
+                                        </template>
+                                    </v-data-table>
+                                </v-card-text>
+                            </v-card>
+                        </v-tab-item>
+                        <v-tab-item>
+                            <v-card flat>
+                                <v-card-text>
+                                    <v-list>
+                                        <v-list-tile avatar v-for="team of league.teams" :key="team.id" @click="">
+                                            <v-list-tile-action>
+                                            </v-list-tile-action>
+                                            <v-list-tile-content>
+                                                <v-list-tile-title>
+                                                    <router-link :to="{name: 'team', params: {id: team.id, leagueId: team.league_id}}">{{ team.name }}</router-link>
+
+                                                </v-list-tile-title>
+                                            </v-list-tile-content>
+                                        </v-list-tile>
+                                    </v-list>
+
+                                </v-card-text>
+                            </v-card>
+                        </v-tab-item>
+                    </v-tabs>
+                </v-card-text>
+            </v-card>
+
         </v-flex>
     </v-layout>
 </template>
@@ -75,17 +165,78 @@
 <script lang="ts">
   import Vue from 'vue'
   import { Component, Watch } from 'vue-property-decorator'
+  import DraftConfirmationDialog from '../../utilities/DraftConfirmationDialog.vue';
+  import * as Ws from '@adonisjs/websocket-client'
+  const ws = Ws('ws://localhost:3333');
 
-  @Component
+
+  // ws.on('open', () => {
+  //   console.log('websocket connected :)');
+  // });
+  //
+  // ws.on('close', () => {
+  //   console.log('websocket closed');
+  //   leaguePlayerChannel = ws.subscribe('leaguePlayer');
+  // })
+  //
+  // ws.on('error', () => {
+  //   console.log('error something wrong with connection');
+  // });
+  //
+  // let leaguePlayerChannel = ws.subscribe('leaguePlayer');
+
+
+  interface AddPlayerOptions {
+    leaguePlayerId: number|null
+  }
+
+  @Component({
+    components: {
+      DraftConfirmationDialog
+    }
+  })
   export default class League extends Vue {
     league: any = {};
+    errorText: string = '';
+    modalOpen: boolean = false;
+    hasErrorMessage: boolean = false;
     teamId: number|null = null;
-    active = null
-    leaguePlayers = []
-    search: string = ''
-    pagination: any = {}
-    loading: boolean = false
-    totalLeaguePlayers: number = 0
+    active = null;
+    leaguePlayers = [];
+    search: string = '';
+    wsServerConnected: boolean = false;
+    pagination: any = {};
+    loading: boolean = false;
+    totalLeaguePlayers: number = 0;
+    showWsServerConnected: boolean = false;
+    showWsServerDisconnected: boolean = false;
+    confirmationMessage: string = '';
+    draftOrderRows: any[] = [];
+    addPlayerOptions: AddPlayerOptions = {
+      leaguePlayerId: null
+    };
+    draftOrderHeader: any[] = [
+      {
+        text: 'Name',
+        value: 'player.name'
+      },
+      {
+        text: 'Positions',
+        value: 'positions'
+      },
+      {
+        text: 'NFL Team',
+        value: 'nfl_team'
+      },
+      {
+        text: 'Draft Team',
+        value: 'draft'
+      },
+      {
+        text: 'Pick #',
+        value: 'pick'
+      }
+    ];
     headers = [
       {
         text: 'Name',
@@ -109,7 +260,7 @@
         value: '',
         sortable: false
       }
-    ]
+    ];
 
     @Watch('pagination', {deep: true})
     onPaginationChange () {
@@ -121,6 +272,12 @@
       this.getLeaguePlayers()
     }
 
+    @Watch('userId')
+    onUserId() {
+      this.getLeague();
+      this.getLeaguePlayers();
+    }
+
     getTeamName (leaguePlayer: any) {
       if (leaguePlayer.team) {
         return leaguePlayer.team.name
@@ -129,15 +286,19 @@
       return null
     }
 
+    get userId() {
+      return this.$store.state.userId;
+    }
+
     async getLeague () {
-      let params: any = this.$route.params
+      let params: any = this.$route.params;
 
       try {
-        let response = await this.$store.state.httpClient.get(`${this.$store.state.apiUrl}/leagues/${params.id}`)
-        this.league = response
+        let league = await this.$store.state.httpClient.get(`${this.$store.state.apiUrl}/leagues/${params.id}`);
+        this.league = league;
 
-        for(let team of this.league.teams) {
-          if(team.user_id == this.$store.state.userId) {
+        for(let team of league.teams) {
+          if(parseInt(team.user_id) == parseInt(this.$store.state.userId)) {
             this.teamId = team.id;
           }
         }
@@ -147,15 +308,15 @@
     }
 
     async getLeaguePlayers () {
-      let params: any = this.$route.params
+      let params: any = this.$route.params;
 
       try {
-        this.loading = true
+        this.loading = true;
         let response = await this.$store.state.httpClient.get(
           `${this.$store.state.apiUrl}/leagues/${params.id}/league-players?page=${this.pagination.page}&limit=${this.pagination.rowsPerPage}&name=${this.search}&order=${this.pagination.sortBy}&descending=${this.pagination.descending}`
-        )
-        this.loading = false
-        this.leaguePlayers = response.data
+        );
+        this.loading = false;
+        this.leaguePlayers = response.data;
         this.totalLeaguePlayers = response.total
 
       } catch (e) {
@@ -163,23 +324,98 @@
       }
     }
 
+    async getDraftOrders() {
+      let params: any = this.$route.params;
 
-    async addPlayer(leaguePlayerId: number) {
+      try{
+        this.draftOrderRows = await this.$store.state.httpClient.get(
+          `${this.$store.state.apiUrl}/leagues/${params.id}/draft-order`
+        )
+      } catch (e) {
+        const errorObject = JSON.parse(e);
+        this.hasErrorMessage = true;
+        this.errorText = errorObject.error;
+      }
+    }
+
+
+    async addPlayer({leaguePlayerId}: {leaguePlayerId: number}) {
       try {
         await this.$store.state
           .httpClient.put(
             `${this.$store.state.apiUrl}/leagues/${this.league.id}/league-players/${leaguePlayerId}?team=${this.teamId}`
-        )
+        );
 
-        this.getLeaguePlayers();
+        // this.getLeaguePlayers();
       } catch (e) {
-        console.log('addplayererror', e);
+        const errorObject = JSON.parse(e);
+        this.hasErrorMessage = true;
+        this.errorText = errorObject.error;
       }
     }
 
+    updateConfirmationMessage(leaguePlayer: any) {
+      this.confirmationMessage = `Are you sure you wish to add ${leaguePlayer.player.name}?`;
+    }
+
+    beforeDestroy() {
+      ws.close();
+      console.log('closing');
+    }
+
     mounted () {
-      this.getLeague();
-      this.getLeaguePlayers();
+      ws.connect();
+      console.log('mounted');
+      let leaguePlayerChannel;
+      ws.on('open', () => {
+        this.wsServerConnected = true;
+        this.showWsServerDisconnected = false;
+        leaguePlayerChannel = ws.subscribe('leaguePlayer');
+        const draftOrderChannel = ws.subscribe('draftOrder');
+
+        draftOrderChannel.on('ready', () => {
+          this.showWsServerConnected = true;
+        });
+
+
+        leaguePlayerChannel.on('close', () => {
+          this.showWsServerDisconnected = true;
+        });
+
+        leaguePlayerChannel.on('message', (message) => {
+
+          this.getLeaguePlayers();
+        })
+
+        draftOrderChannel.on('close', () => {
+          this.showWsServerDisconnected = true;
+        });
+
+        draftOrderChannel.on('message', (message) => {
+          console.log('draft message', message, (new Date()).getTime());
+          this.draftOrderRows = message;
+        })
+      });
+
+      ws.on('close', () => {
+        this.wsServerConnected = false;
+        this.showWsServerDisconnected = true;
+        this.showWsServerConnected = false;
+      });
+
+      ws.on('error', () => {
+        console.log('error something wrong with connection');
+      });
+
+      // let leaguePlayerChannel = ws.subscribe('leaguePlayer');
+
+
+      if(this.$store.state.userId) {
+        this.getLeague();
+        this.getLeaguePlayers();
+      }
+
+      this.getDraftOrders();
     }
   }
 </script>

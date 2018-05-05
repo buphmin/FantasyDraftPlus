@@ -32,6 +32,7 @@ Route.get('/players', 'PlayerController.getPlayers').middleware('auth');
 Route.get('/teams/:id', 'TeamController.getTeam').middleware('auth');
 Route.get('/users/:id', 'UserController.getUser').middleware('auth');
 Route.get('/getUserId', 'UserController.getUserId').middleware('auth');
+Route.get('/leagues/:league/draft-order', 'DraftOrderController.getDraftOrders').middleware('auth');
 
 Route.post('/users', async ({request}) => {
   let user = new User();

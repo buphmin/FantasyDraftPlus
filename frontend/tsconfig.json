@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "sourceMap": true,
-    "strict": true,
+    "strict": false,
     "noImplicitReturns": true,
     "lib": ["es6", "es7", "dom"],
     "module": "es2015",

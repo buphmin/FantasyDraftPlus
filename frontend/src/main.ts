@@ -25,7 +25,7 @@ const routes = [
   {path: '/login', component: Login, name: 'login'},
   {path: '/league/:id', component: League, name: 'singleLeague'},
   {path: '/leagues', component: Leagues, name: 'leagues'},
-  {path: '/team/:id', component: Team, name: 'team'}
+  {path: '/league/:leagueId/team/:id', component: Team, name: 'team'}
 ]
 const router = new VueRouter({
   routes, // short for routes: routes
@@ -40,8 +40,10 @@ let httpClient = new HttpClient({}, token);
 const store = new Vuex.Store({
   state: {
     httpClient: httpClient,
-    apiUrl: '/api',
-    userId: null
+    apiUrl: 'http://127.0.0.1:3333',
+    // apiUrl: '/api',
+    userId: null,
+    user: null,
   },
   mutations: {
     setToken (state, token) {
@@ -49,9 +51,12 @@ const store = new Vuex.Store({
     },
     setUserId(state, userId) {
       state.userId = userId;
+    },
+    setUser(state, user) {
+      state.user = user;
     }
   }
-})
+});
 
 
 
@@ -63,7 +68,9 @@ new Vue({
   store,
 
   async mounted() {
-    let userId = await store.state.httpClient.get(`${store.state.apiUrl}/getUserId`)
+    let userId = await store.state.httpClient.get(`${store.state.apiUrl}/getUserId`);
     this.$store.commit('setUserId', userId);
+    const user = await store.state.httpClient.get(`${store.state.apiUrl}/users/${userId}`);
+    this.$store.commit('setUser', user);
   }
-})
+});

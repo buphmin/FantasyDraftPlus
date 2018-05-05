@@ -7,6 +7,7 @@ const League = use('App/Models/League');
 // const User = use ('App/Models/User');
 const DraftOrder = use('App/Models/DraftOrder');
 const Database = use('Database');
+const Ws = use('Ws');
 
 let orderToColumnName = {
   'playerName': 'player.name',
@@ -60,9 +61,16 @@ class LeaguePlayerController {
     ;
 
     if(orderColumn !== 'null' && orderColumn !== undefined) {
-      builder
-        .orderByRaw(`${orderToColumnName[orderColumn]} ${direction}`)
+      if(orderColumn === 'position') {
+        builder
+          .orderByRaw(`${orderToColumnName[orderColumn]} ${direction}, player.name asc`)
+      } else {
+        builder
+          .orderByRaw(`${orderToColumnName[orderColumn]} ${direction}`)
+      }
+
     }
+
 
 
     if(team !== undefined) {
@@ -85,7 +93,6 @@ class LeaguePlayerController {
     //if live. Check position limit.
     //update
     let queryParams = request.get();
-
     let leaguePlayerId = params.id;
     let userId = auth.user.id;
     let team = queryParams['team'];
@@ -101,7 +108,7 @@ class LeaguePlayerController {
         let isUserOnClock = await this.checkOnClock(team, userId);
 
         if(isUserOnClock !== false) {
-          return this.handleAddPlayerNormal(leaguePlayerId, userId, team, response, league.draft_live === 1, isUserOnClock);
+          await this.handleAddPlayerNormal(leaguePlayerId, userId, team, response, league.draft_live === 1, isUserOnClock);
         } else {
           response.status(400);
           return {
@@ -109,12 +116,25 @@ class LeaguePlayerController {
           }
         }
       } else {
-        return this.handleAddPlayerNormal(leaguePlayerId, userId, team, response);
+        await this.handleAddPlayerNormal(leaguePlayerId, userId, team, response);
       }
     } else {
-      return this.handleDropLeaguePlayer(leaguePlayerId, userId, response);
+      await this.handleDropLeaguePlayer(leaguePlayerId, userId, response);
     }
+
+    const channel = Ws.getChannel('leaguePlayer');
+    const topic = channel.topic('leaguePlayer');
+
+
+    //seems to me that if no one is subscribed there is no topic.
+    //if no one is subscribed, why bother broadcasting?
+    if(topic !== null) {
+      topic.broadcast('message', 'updateLeaguePlayer');
+    }
+
+    return Promise.resolve();
   }
+
 
   async handleAddPlayerNormal(leaguePlayerId, userId, newTeamId, response, draftLive = false, draftOrder = null) {
     let currentLeaguePlayer = await LeaguePlayer
@@ -127,6 +147,14 @@ class LeaguePlayerController {
       .first();
 
     let jsonLeaguePlayer = currentLeaguePlayer.toJSON();
+
+    if(jsonLeaguePlayer.team_id !== null && jsonLeaguePlayer.team.user_id !== userId) {
+      response.status(400);
+      return {
+        error: `You are not allowed to add a player from another team`
+      }
+    }
+
     let isWithinPositionLimit = await this.isWithinPositionLimits(jsonLeaguePlayer, newTeamId);
 
     if(isWithinPositionLimit !== true) {
@@ -164,7 +192,24 @@ class LeaguePlayerController {
             await nextOrder.save(transaction);
           }
 
-          transaction.commit()
+          transaction.commit();
+
+          const channel = Ws.getChannel('draftOrder');
+          const topic = channel.topic('draftOrder');
+          //seems to me that if no one is subscribed there is no topic.
+          //if no one is subscribed, why bother broadcasting?
+          if(topic !== null) {
+            const draftOrderRows = await DraftOrder
+              .query()
+              .where('league_id', '=', jsonLeaguePlayer.league_id)
+              .with('leaguePlayer')
+              .with('leaguePlayer.player')
+              .with('leaguePlayer.player.positions')
+              .fetch();
+
+            console.log('date', (new Date()).getTime());
+            topic.broadcast('message', draftOrderRows);
+          }
         } catch(e) {
           transaction.rollback();
           throw e;
