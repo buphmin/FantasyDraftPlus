@@ -11,26 +11,31 @@ import Login from './components/routes/Login.vue';
 import Leagues from './components/routes/Leagues.vue';
 import League from './components/routes/League.vue';
 import Team from './components/routes/Team.vue';
+import SignUp from './components/routes/SignUp.vue';
+import AllLeagues from './components/routes/AllLeagues.vue';
+import Profile from './components/routes/Profile.vue';
 
 import 'vuetify/dist/vuetify.min.css' // Ensure you are using css-loader
 
-Vue.use(VueRouter)
-Vue.use(Vuex)
-Vue.use(Vuetify)
+Vue.use(VueRouter);
+Vue.use(Vuex);
+Vue.use(Vuetify);
 Vue.use(VeeValidate); // good to go.
-
 
 const routes = [
   {path: '/', component: Home, name: 'home'},
   {path: '/login', component: Login, name: 'login'},
   {path: '/league/:id', component: League, name: 'singleLeague'},
   {path: '/leagues', component: Leagues, name: 'leagues'},
-  {path: '/league/:leagueId/team/:id', component: Team, name: 'team'}
-]
+  {path: '/all-leagues', component: AllLeagues, name: 'allLeagues'},
+  {path: '/league/:leagueId/team/:id', component: Team, name: 'team'},
+  {path: '/sign-up', component: SignUp, name: 'signup'},
+  {path: '/profile', component: Profile, name: 'profile'}
+];
 const router = new VueRouter({
   routes, // short for routes: routes
   mode: 'history'
-})
+});
 
 let token = window.localStorage.getItem('token');
 
@@ -54,6 +59,10 @@ const store = new Vuex.Store({
     },
     setUser(state, user) {
       state.user = user;
+    },
+    signOut(state, user) {
+      state.user = null;
+      state.userId = null;
     }
   }
 });
@@ -68,9 +77,11 @@ new Vue({
   store,
 
   async mounted() {
-    let userId = await store.state.httpClient.get(`${store.state.apiUrl}/getUserId`);
-    this.$store.commit('setUserId', userId);
-    const user = await store.state.httpClient.get(`${store.state.apiUrl}/users/${userId}`);
-    this.$store.commit('setUser', user);
+    if(localStorage.getItem('token')) {
+      let userId = await store.state.httpClient.get(`${store.state.apiUrl}/getUserId`);
+      this.$store.commit('setUserId', userId);
+      const user = await store.state.httpClient.get(`${store.state.apiUrl}/users/${userId}`);
+      this.$store.commit('setUser', user);
+    }
   }
 });

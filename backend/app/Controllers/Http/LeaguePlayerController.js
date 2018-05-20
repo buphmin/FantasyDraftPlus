@@ -8,6 +8,8 @@ const League = use('App/Models/League');
 const DraftOrder = use('App/Models/DraftOrder');
 const Database = use('Database');
 const Ws = use('Ws');
+const nodemailer = require('nodemailer');
+const Mailservice = require('../../Services/MailService').MailService;
 
 let orderToColumnName = {
   'playerName': 'player.name',
@@ -84,7 +86,12 @@ class LeaguePlayerController {
 
 
 
+
+
   async updateLeaguePlayer({request, params, auth, response}) {
+
+    // this.sendNextUpEmail(params.league);
+    // return Promise.resolve();
     //check if dropping.
     //If Y. check if not on your team
     //check draft live.
@@ -109,6 +116,7 @@ class LeaguePlayerController {
 
         if(isUserOnClock !== false) {
           await this.handleAddPlayerNormal(leaguePlayerId, userId, team, response, league.draft_live === 1, isUserOnClock);
+          this.sendNextUpEmail(params.league);
         } else {
           response.status(400);
           return {
@@ -117,6 +125,7 @@ class LeaguePlayerController {
         }
       } else {
         await this.handleAddPlayerNormal(leaguePlayerId, userId, team, response);
+
       }
     } else {
       await this.handleDropLeaguePlayer(leaguePlayerId, userId, response);
@@ -237,10 +246,14 @@ class LeaguePlayerController {
     } else {
       let order = await DraftOrder
         .query()
-        .where('end_time', '>=', new Date())
-        .whereRaw('player_selected_id is null')
+        .where('end_time', '>', new Date())
+        .andWhereRaw('player_selected_id is null')
+        .andWhere('team_id', '=', teamId)
         .orderBy('pick_number', 'asc')
         .first();
+      if(order === null) {
+        return false;
+      }
 
       return order;
     }
@@ -323,6 +336,58 @@ class LeaguePlayerController {
     }
   }
 
+
+  async sendNextUpEmail(leagueId) {
+    try {
+
+      let nextUp = await DraftOrder.query()
+        .with('team')
+        .with('team.user')
+        .whereRaw('player_selected_id is null')
+        .andWhereRaw('(end_time > CURRENT_TIMESTAMP() OR end_time is null)')
+        .andWhere('league_id', '=', leagueId)
+        .orderBy('pick_number')
+        .first();
+      const nextUpJson = nextUp.toJSON();
+
+      //dont send emails if unsubscribed.
+      if(nextUpJson.team.user.send_emails === 0) {
+        console.log('not sending email');
+        return;
+      }
+
+      const currentUp = await DraftOrder.query()
+        .with('team')
+        .with('leaguePlayer')
+        .with('leaguePlayer.player')
+        .whereRaw('player_selected_id is not null')
+        .andWhere('league_id', '=', leagueId)
+        .orderBy('pick_number', 'desc')
+        .first();
+
+      const currentUpJson = currentUp.toJSON();
+
+      const subject = `Your team: ${nextUpJson.team.name} has been placed on the clock`;
+      // $body = "Your team: $teamName has been placed on the clock as of $time EST with pick number: $pickNumber. Please login to https://fantasydraftplus.com in order to make your pick.";
+      // $body .= "\n\nIf you do not select a player within the 24 hour period then your pick will be forfeit.";
+      // $body .= "\n\n$player was selected before you by " . $order->getTeam()->getName();
+      const message = `
+      Your team: ${nextUpJson.team.name} has been on the clock as of ${nextUpJson.start_time} EST with pick number: ${nextUpJson.pick_number}.
+      Please login to http://fantasydraftplus.net in order to make your pick.
+
+      If you do not select a player within the 24 hour period then your pick will be forfeit.
+
+      ${currentUpJson.leaguePlayer.player.name} as selected before you by ${currentUpJson.team.name}
+      `;
+
+      const mailService = new Mailservice();
+
+      mailService.sendEmail(nextUpJson.team.user.email, subject, message, true);
+    } catch(e) {
+      console.log('er', e);
+    }
+
+  }
 
 }
 

@@ -18,7 +18,7 @@
 */
 
 const { Ignitor } = require('@adonisjs/ignitor');
-const Promise = require('bluebird');
+Promise = require('bluebird');
 
 
 new Ignitor(require('@adonisjs/fold'))

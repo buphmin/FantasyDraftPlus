@@ -1,7 +1,7 @@
 <template>
-    <div>
-        {{ message }}
-    </div>
+    <p>
+        Welcome to Fantasy Draft Plus!
+    </p>
 </template>
 
 <script lang="ts">
@@ -12,11 +12,6 @@
   @Component
   export default class Home extends Vue {
     message: string = 'Hello';
-
-    async mounted() {
-
-      console.log('test');
-    }
   }
 </script>
 <style scoped>

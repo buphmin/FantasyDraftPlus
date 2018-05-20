@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node ace test"
+    "test": "node ace test",
+    "closure": "google-closure-compiler-js --processCommonJsModules server.js > build/server_build.js"
   },
   "keywords": [
     "adonisjs",
@@ -25,9 +26,12 @@
     "@adonisjs/lucid": "^5.0.3",
     "@adonisjs/websocket": "^1.0.9",
     "bluebird": "^3.5.1",
-    "mysql2": "^1.5.3"
+    "mysql2": "^1.5.3",
+    "nodemailer": "^4.6.4"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "webpack": "^3.12.0"
+  },
   "autoload": {
     "App": "./app"
   }

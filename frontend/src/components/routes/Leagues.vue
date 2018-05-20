@@ -1,16 +1,24 @@
 <template>
-    <v-layout class="mt-2">
-        <v-flex md10 offset-md1>
-            <v-data-table
-                    :headers="headers"
-                    :items="leagues"
-                    hide-actions
-                    class="elevation-1"
-            >
-                <template slot="items" slot-scope="props">
-                    <td><router-link :append="true" :to="{name: 'singleLeague', params: {id: props.item.id}}">{{ props.item.name }}</router-link></td>
-                </template>
-            </v-data-table>
+    <v-layout row wrap class="mt-2">
+        <v-flex sm12 md10 offset-md1>
+            <h1>Leagues</h1>
+        </v-flex>
+
+        <v-flex sm12 md10 offset-md1 >
+            <v-list>
+                <v-list-tile avatar
+                             v-for="league of leagues"
+                             :to="{name: 'singleLeague', params: {id: league.id}}"
+                             :key="league.id">
+                    <v-list-tile-action>
+                    </v-list-tile-action>
+                    <v-list-tile-content>
+                        <v-list-tile-title>
+                            {{ league.name }}
+                        </v-list-tile-title>
+                    </v-list-tile-content>
+                </v-list-tile>
+            </v-list>
         </v-flex>
 
     </v-layout>
@@ -20,7 +28,6 @@
   import Vue from 'vue';
   import {Component} from 'vue-property-decorator';
 
-
   @Component
   export default class Leagues extends Vue {
     leagues: any[] = [];
@@ -29,7 +36,8 @@
         text: 'League Name',
         value: 'name'
       }
-    ]
+    ];
+
 
     async getLeagues() {
       try {
@@ -38,7 +46,6 @@
       } catch (e) {
 
       }
-
     }
 
 

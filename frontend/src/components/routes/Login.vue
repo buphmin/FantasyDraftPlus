@@ -20,7 +20,6 @@
                         type="password"
                 ></v-text-field>
 
-
                 <v-btn type="submit">Login</v-btn>
             </v-form>
         </v-flex>
@@ -32,12 +31,12 @@
   import Vue from 'vue';
   import {Component} from 'vue-property-decorator';
 
-
   @Component
   export default class Login extends Vue {
-    valid: boolean = false
+    valid: boolean = false;
     email: string = '';
     password: string = '';
+
 
     async login() {
       let isValid = await this.$validator.validateAll();
@@ -52,7 +51,11 @@
 
         window.localStorage.setItem('token', response.token);
         this.$store.commit('setToken', response.token);
-        this.$router.push('home');
+        let userId = await this.$store.state.httpClient.get(`${this.$store.state.apiUrl}/getUserId`);
+        this.$store.commit('setUserId', userId);
+        const user = await this.$store.state.httpClient.get(`${this.$store.state.apiUrl}/users/${userId}`);
+        this.$store.commit('setUser', user);
+        this.$router.push('leagues');
       }
 
     }
