@@ -98,7 +98,7 @@
               </v-menu>
           </v-toolbar>
           <router-view></router-view>
-            <v-footer height="auto" class="blue darken-3" :absolute="true">
+            <v-footer height="auto" class="blue darken-3" :absolute="false">
                 <v-layout row wrap justify-center>
 
                     <a href="mailto:info@fantasydraftplus.net">

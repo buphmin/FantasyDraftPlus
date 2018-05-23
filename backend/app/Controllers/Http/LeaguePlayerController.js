@@ -175,15 +175,18 @@ class LeaguePlayerController {
       currentLeaguePlayer.team_id = newTeamId;
 
       if(draftLive) {
-        const transaction = await Database.beginTransaction();
+        // const transaction = await Database.beginTransaction();
 
         try {
-          await currentLeaguePlayer.save(transaction);
+          await currentLeaguePlayer.save();
 
           draftOrder.team_id = newTeamId;
           draftOrder.player_selected_id = currentLeaguePlayer.id;
           draftOrder.end_time = new Date();
-          await draftOrder.save(transaction);
+          if(draftOrder.start_time === null) {
+            draftOrder.start_time = new Date();
+          }
+          await draftOrder.save();
 
           let nextOrder = await DraftOrder
             .query()
@@ -198,10 +201,10 @@ class LeaguePlayerController {
             endTime.setDate(startTime.getDate() + 1);
             nextOrder.start_time = startTime;
             nextOrder.end_time = endTime;
-            await nextOrder.save(transaction);
+            await nextOrder.save();
           }
 
-          transaction.commit();
+          // transaction.commit();
 
           const channel = Ws.getChannel('draftOrder');
           const topic = channel.topic('draftOrder');
@@ -220,7 +223,7 @@ class LeaguePlayerController {
             topic.broadcast('message', draftOrderRows);
           }
         } catch(e) {
-          transaction.rollback();
+          // transaction.rollback();
           throw e;
         }
 
@@ -244,9 +247,13 @@ class LeaguePlayerController {
     if(rows.length === 0) {
       return false;
     } else {
+      const endDate = new Date();
+      const endDateString = `${endDate.getFullYear()}-${("0" + (endDate.getMonth() + 1)).slice(-2)}-${endDate.getDate()} ${endDate.getHours()}:${endDate.getMinutes()}:${endDate.getSeconds()}`;
+      console.log('endtime', endDateString);
+
       let order = await DraftOrder
         .query()
-        .where('end_time', '>', new Date())
+        .whereRaw(`(end_time > ? or end_time is null)`, [endDateString])
         .andWhereRaw('player_selected_id is null')
         .andWhere('team_id', '=', teamId)
         .orderBy('pick_number', 'asc')
