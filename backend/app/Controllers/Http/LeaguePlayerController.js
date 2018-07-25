@@ -247,18 +247,21 @@ class LeaguePlayerController {
     if(rows.length === 0) {
       return false;
     } else {
-      const endDate = new Date();
-      const endDateString = `${endDate.getFullYear()}-${("0" + (endDate.getMonth() + 1)).slice(-2)}-${endDate.getDate()} ${endDate.getHours()}:${endDate.getMinutes()}:${endDate.getSeconds()}`;
-      console.log('endtime', endDateString);
+      // const endDate = new Date();
+      // const endDateString = `${endDate.getFullYear()}-${("0" + (endDate.getMonth() + 1)).slice(-2)}-${endDate.getDate()} ${endDate.getHours()}:${endDate.getMinutes()}:${endDate.getSeconds()}`;
+      // console.log('endtime', endDateString);
 
       let order = await DraftOrder
         .query()
-        .whereRaw(`(end_time > ? or end_time is null)`, [endDateString])
+        .whereRaw(`(end_time > now() or end_time is null)`)
         .andWhereRaw('player_selected_id is null')
-        .andWhere('team_id', '=', teamId)
         .orderBy('pick_number', 'asc')
         .first();
       if(order === null) {
+        return false;
+      }
+
+      if(order.team_id !== teamId) {
         return false;
       }
 

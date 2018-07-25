@@ -25,10 +25,6 @@ class LeagueController {
     return League
       .query()
       .select('league.*')
-      .with('teams')
-      .with('teams.user')
-      .innerJoin('team', 'team.league_id', 'league.id')
-      .innerJoin('users', 'users.id', 'team.user_id')
       .paginate(page, limit);
   }
 
