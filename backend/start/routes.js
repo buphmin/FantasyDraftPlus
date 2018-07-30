@@ -30,6 +30,7 @@ Route.get('/leagues/:id', 'LeagueController.getLeague').middleware('auth');
 Route.get('/leagues/:league/league-players', 'LeaguePlayerController.getLeaguePlayers').middleware('auth');
 Route.put('/leagues/:league/league-players/:id', 'LeaguePlayerController.updateLeaguePlayer').middleware('auth');
 Route.get('/players', 'PlayerController.getPlayers').middleware('auth');
+Route.get('/teams', 'TeamController.getTeams').middleware('auth');
 Route.get('/teams/:id', 'TeamController.getTeam').middleware('auth');
 Route.get('/users/:id', 'UserController.getUser').middleware('auth');
 Route.get('/getUserId', 'UserController.getUserId').middleware('auth');
@@ -37,4 +38,6 @@ Route.post('/users', 'UserController.createUser');
 Route.post('/users/reset-password', 'UserController.updatePassword').middleware('auth');
 Route.post('/users/update-emails', 'UserController.updateEmailStatus').middleware('auth');
 Route.get('/leagues/:league/draft-order', 'DraftOrderController.getDraftOrders').middleware('auth');
+Route.get('/admin/send-next-up-email/:leagueId', 'AdminController.sendNextUpEmail').middleware('auth');
+Route.get('/admin/league/:league/:leaguePlayer', 'AdminController.addPlayerToTeam').middleware('auth');
 

@@ -95,9 +95,10 @@ module.exports = {
     extensions: ['*', '.js', '.vue', '.json', '.ts']
   },
   devServer: {
+    // contentBase: path.resolve(__dirname, './dist'),
     historyApiFallback: true,
-    noInfo: true,
-    overlay: true
+    // noInfo: true,
+    overlay: true,
   },
   performance: {
     hints: false

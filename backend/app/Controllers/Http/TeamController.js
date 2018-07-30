@@ -10,6 +10,11 @@ class TeamController {
       .where('id', '=', params.id)
       .first();
   }
+
+  getTeams() {
+    return Team
+      .query();
+  }
 }
 
 module.exports = TeamController;

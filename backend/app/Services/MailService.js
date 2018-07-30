@@ -7,6 +7,13 @@ class MailService {
   }
 
 
+  /**
+   *
+   * @param toEmail
+   * @param subject
+   * @param message
+   * @param sendEmail
+   */
   sendEmail(toEmail = 'buphmin@gmail.com', subject = 'test', message = 'test', sendEmail = false) {
     //dont send emails to those who don't want.
     if(sendEmail === true) {

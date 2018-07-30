@@ -14,6 +14,7 @@ import Team from './components/routes/Team.vue';
 import SignUp from './components/routes/SignUp.vue';
 import AllLeagues from './components/routes/AllLeagues.vue';
 import Profile from './components/routes/Profile.vue';
+import Admin from './components/routes/Admin.vue';
 
 import 'vuetify/dist/vuetify.min.css' // Ensure you are using css-loader
 
@@ -30,7 +31,8 @@ const routes = [
   {path: '/all-leagues', component: AllLeagues, name: 'allLeagues'},
   {path: '/league/:leagueId/team/:id', component: Team, name: 'team'},
   {path: '/sign-up', component: SignUp, name: 'signup'},
-  {path: '/profile', component: Profile, name: 'profile'}
+  {path: '/profile', component: Profile, name: 'profile'},
+  {path: '/admin', component: Admin, name: 'admin'}
 ];
 const router = new VueRouter({
   routes, // short for routes: routes
@@ -38,7 +40,6 @@ const router = new VueRouter({
 });
 
 let token = window.localStorage.getItem('token');
-
 
 let httpClient = new HttpClient({}, token);
 
@@ -66,8 +67,6 @@ const store = new Vuex.Store({
     }
   }
 });
-
-
 
 
 new Vue({
