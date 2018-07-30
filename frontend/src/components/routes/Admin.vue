@@ -51,9 +51,13 @@
     
 
                         <v-btn color="blue" type="submit">
-
+                            Move player to team.
                         </v-btn>
                     </v-form>
+
+                    <v-btn @click="sendNextUpEmail()">
+                        Send email to next team on the clock.
+                    </v-btn>
                 </div>
                 <div v-else>
                     You do no have permission to access this page.
@@ -102,8 +106,9 @@ export default class Admin extends Vue {
 
   async updateLeaguePlayer() {
     try {
+      const baseUrl = this.$store.state.apiUrl;
       const response = await this.$store.state.httpClient.get(
-        `/admin/league/${this.leagueId}/${this.leaguePlayer.id}?team=${this.teamId}&pickNumber=${this.draftOrder}`
+        `${baseUrl}/admin/league/${this.leagueId}/${this.leaguePlayer.id}?team=${this.teamId}&pickNumber=${this.draftOrder}`
       );
     } catch(e) {
       console.log(e);
@@ -116,16 +121,26 @@ export default class Admin extends Vue {
         `${this.$store.state.apiUrl}/teams`
       );
       this.teams = response;
-    } catch (e) {}
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   async getLeagues() {
     try {
       let response = await this.$store.state.httpClient.get(
-        `${this.$store.state.apiUrl}/leagues`
+        `${this.$store.state.apiUrl}/leagues/all`
       );
       this.leagues = response.data;
-    } catch (e) {}
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  async sendNextUpEmail() {
+    await this.$store.state.httpClient.get(
+      `${this.$store.state.apiUrl}/admin/send-next-up-email/${this.leagueId}`
+    )
   }
 
   mounted() {

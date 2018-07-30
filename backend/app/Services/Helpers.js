@@ -48,7 +48,7 @@ class Helpers {
       If you do not select a player within the 24 hour period then your pick will be move to the next person. You may contact popeseveni@gmail.com or buphmin@gmail.com
       to ask for your pick to be filled in out of order.
 
-      ${currentUpJson.leaguePlayer.player.name} as selected before you by ${currentUpJson.team.name}
+      ${currentUpJson.leaguePlayer.player.name} was selected before you by ${currentUpJson.team.name}
       `;
 
       const mailService = new Mailservice();

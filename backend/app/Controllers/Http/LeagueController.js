@@ -19,6 +19,7 @@ class LeagueController {
 
 
   getAllLeagues({request}) {
+    console.log('get leagues');
     const query = request.get();
     const limit = query['limit'] !== undefined ? query['limit'] : 25;
     const page = query['page'] !== undefined ? query['page'] : 1;
