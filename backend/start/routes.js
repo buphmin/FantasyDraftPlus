@@ -39,5 +39,5 @@ Route.post('/users/reset-password', 'UserController.updatePassword').middleware(
 Route.post('/users/update-emails', 'UserController.updateEmailStatus').middleware('auth');
 Route.get('/leagues/:league/draft-order', 'DraftOrderController.getDraftOrders').middleware('auth');
 Route.get('/admin/send-next-up-email/:leagueId', 'AdminController.sendNextOnClockEmail').middleware('auth');
-Route.get('/admin/league/:league/:leaguePlayer', 'AdminController.addPlayerToTeam').middleware('auth');
+Route.get('/admin/league/:league/:leaguePlayer', 'AdminController.updateLeaguePlayer').middleware('auth');
 

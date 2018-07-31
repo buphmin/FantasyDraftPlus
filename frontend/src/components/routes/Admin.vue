@@ -24,7 +24,7 @@
                                 :items="leaguePlayers"
                                 :loading="isLoadingPlayer"
                                 :search-input.sync="leaguePlayerSearch"
-    
+
                                 item-text="player.name"
                                 item-value="id"
                                 label="Player"
@@ -37,6 +37,8 @@
                                 item-value="id"
                                 item-text="name"
                                 label="Team"
+                                :clearable="true"
+                                :clear-icon-cb="resetTeamId"
                                 v-model="teamId"
                         >
 
@@ -50,12 +52,12 @@
                         </v-text-field>
     
 
-                        <v-btn color="blue" type="submit">
+                        <v-btn color="blue" type="submit" :disabled="hasFilledForm === false">
                             Move player to team.
                         </v-btn>
                     </v-form>
 
-                    <v-btn @click="sendNextUpEmail()">
+                    <v-btn @click="sendNextUpEmail()" :disabled="leagueId === null">
                         Send email to next team on the clock.
                     </v-btn>
                 </div>
@@ -78,7 +80,7 @@ export default class Admin extends Vue {
   leaguePlayers: any[] = [];
   leaguePlayerSearch: any = "";
   leagueId: number = null;
-  draftOrder: number = null;
+  draftOrder: number | '' = null;
   teamId: number = null;
   teams: Team[] = [];
 
@@ -93,6 +95,14 @@ export default class Admin extends Vue {
     this.leaguePlayers = response.data;
   }
 
+  get hasFilledForm() {
+    return this.leagueId !== null && this.leaguePlayer !== null && this.draftOrder !== null && this.draftOrder !== '';
+  }
+
+  resetTeamId() {
+    this.teamId = null;
+  }
+
   isAdmin() {
     if (this.$store.state.user !== null) {
       return this.$store.state.user.email.includes(
@@ -103,6 +113,7 @@ export default class Admin extends Vue {
 
     return false;
   }
+
 
   async updateLeaguePlayer() {
     try {

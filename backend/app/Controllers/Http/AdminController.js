@@ -15,17 +15,20 @@ class AdminController {
   }
 
 
-  addPlayerToTeam({params, request, auth}) {
+  updateLeaguePlayer({params, request, auth}) {
     if(auth.user.email.includes('buphmin@gmail.com', 'popeseveni@gmail.com')) {
-      console.log('here');
       let queryParams = request.get();
-
       let league = params.league;
       let team = queryParams.team;
+
+      if(team === 'null') {
+        team = null;
+      }
+
       let pickNumber = queryParams.pickNumber;
       let leaguePlayerId = params.leaguePlayer;
 
-      this.handleAddPlayer(leaguePlayerId, pickNumber, league, team);
+      this.handleUpdatePlayer(leaguePlayerId, pickNumber, league, team);
 
       return `League player ${leaguePlayerId} updated`;
     } else {
@@ -35,7 +38,7 @@ class AdminController {
   }
 
 
-  async handleAddPlayer(leaguePlayerId, pickNumber, league, team) {
+  async handleUpdatePlayer(leaguePlayerId, pickNumber, league, team) {
     let currentLeaguePlayer = await LeaguePlayer
       .query()
       .with('player')
@@ -49,17 +52,20 @@ class AdminController {
 
     await currentLeaguePlayer.save();
 
-    let draftOrder = await DraftOrder
-      .query()
-      .where('draft_order.pick_number', '=', pickNumber)
-      .andWhere('draft_order.league_id', '=', league)
-      .first();
+    if(team !== null) {
+      let draftOrder = await DraftOrder
+        .query()
+        .where('draft_order.pick_number', '=', pickNumber)
+        .andWhere('draft_order.league_id', '=', league)
+        .first();
 
-    draftOrder.team_id = team;
-    draftOrder.player_selected_id = leaguePlayerId;
-    draftOrder.end_time = new Date();
+      draftOrder.team_id = team;
+      draftOrder.player_selected_id = leaguePlayerId;
+      draftOrder.end_time = new Date();
 
-    await draftOrder.save();
+      await draftOrder.save();
+    }
+
   }
 }
 
