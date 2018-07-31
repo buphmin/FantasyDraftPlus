@@ -54,13 +54,22 @@ export default class SignUp extends Vue {
       let isValid = await this.$validator.validateAll();
 
       if (isValid) {
-        await this.$store.state.httpClient.post(`${this.$store.state.apiUrl}/users`, {
+        const response = await this.$store.state.httpClient.post(`${this.$store.state.apiUrl}/users`, {
           body: JSON.stringify({
             email: this.email,
             password: this.password,
             inviteCode: this.inviteCode
           })
         });
+
+        window.localStorage.setItem('token', response.token);
+        this.$store.commit('setToken', response.token);
+        let userId = await this.$store.state.httpClient.get(`${this.$store.state.apiUrl}/getUserId`);
+        this.$store.commit('setUserId', userId);
+        const user = await this.$store.state.httpClient.get(`${this.$store.state.apiUrl}/users/${userId}`);
+        this.$store.commit('setUser', user);
+        this.$router.push('leagues');
+
       }
     } catch(e) {
       this.errorMessage =  e;

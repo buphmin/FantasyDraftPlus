@@ -59,6 +59,14 @@
                         </v-list-tile-title>
                     </v-list-tile-content>
                 </v-list-tile>
+                <v-list-tile v-if="$store.state.userId !== null" :to="{name: 'tutorial'}">
+                    <v-list-tile-content>
+                        <v-list-tile-title>
+                            Tutorial
+
+                        </v-list-tile-title>
+                    </v-list-tile-content>
+                </v-list-tile>
             </v-list>
           </v-navigation-drawer>
           <v-toolbar color="blue darken-3" dark>
@@ -70,9 +78,11 @@
               <v-btn v-if="$store.state.userId === null" flat :to="{name: 'login'}">Login</v-btn>
               <v-btn v-if="$store.state.userId === null" flat :to="{name: 'signup'}"><v-icon dark>person_add</v-icon>  Sign Up</v-btn>
               <v-btn v-if="$store.state.user !== null" flat :to="{name: 'allLeagues'}">Leagues</v-btn>
+                <v-btn v-if="$store.state.user !== null" flat :to="{name: 'tutorial'}">Tutorial</v-btn>
             </v-toolbar-items>
+
               <v-menu :nudge-width="100" v-if="$store.state.user !== null" class="hidden-sm-and-down">
-                  <v-toolbar-title slot="activator" style="font-size: 14px">
+                  <v-toolbar-title slot="activator">
                       <span>{{ $store.state.user.email.toUpperCase() }}</span>
                       <v-icon >arrow_drop_down</v-icon>
                   </v-toolbar-title>

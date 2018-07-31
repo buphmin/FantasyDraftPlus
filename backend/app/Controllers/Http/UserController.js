@@ -40,7 +40,7 @@ class UserController {
     }
   }
 
-  async createUser({request, response}) {
+  async createUser({request, response, auth}) {
     const body = request.post();
     try {
       let user = new User();
@@ -54,6 +54,9 @@ class UserController {
         user.email = body.email;
 
         await user.save();
+
+
+        return await auth.attempt(body.email, body.password);
       }
     } catch(e) {
       if(e.code === 'ER_DUP_ENTRY') {

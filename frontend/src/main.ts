@@ -15,8 +15,10 @@ import SignUp from './components/routes/SignUp.vue';
 import AllLeagues from './components/routes/AllLeagues.vue';
 import Profile from './components/routes/Profile.vue';
 import Admin from './components/routes/Admin.vue';
+import Tutorial from './components/routes/Tutorial.vue';
 
 import 'vuetify/dist/vuetify.min.css' // Ensure you are using css-loader
+
 
 Vue.use(VueRouter);
 Vue.use(Vuex);
@@ -32,7 +34,8 @@ const routes = [
   {path: '/league/:leagueId/team/:id', component: Team, name: 'team'},
   {path: '/sign-up', component: SignUp, name: 'signup'},
   {path: '/profile', component: Profile, name: 'profile'},
-  {path: '/admin', component: Admin, name: 'admin'}
+  {path: '/admin', component: Admin, name: 'admin'},
+  {path: '/tutorial', component: Tutorial, name: 'tutorial'}
 ];
 const router = new VueRouter({
   routes, // short for routes: routes
@@ -43,10 +46,13 @@ let token = window.localStorage.getItem('token');
 
 let httpClient = new HttpClient({}, token);
 
+
+let dev = true;
+
 const store = new Vuex.Store({
   state: {
     httpClient: httpClient,
-    apiUrl: 'http://127.0.0.1:3333',
+    apiUrl: dev ? 'http://127.0.0.1:3333' : '/api',
     // apiUrl: '/api',
     userId: null,
     user: null,

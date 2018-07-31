@@ -82,6 +82,7 @@ class LeaguePlayerController {
 
     return builder
       .where('league_player.league_id', '=', params.league)
+      // .groupBy('league_player.player_id')
       .paginate(page, limit);
   }
 
