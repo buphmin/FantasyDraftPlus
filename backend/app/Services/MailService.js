@@ -30,7 +30,7 @@ class MailService {
       const mailOptions = {
         from: 'noreply@fantasydraftplus.net', // sender address
         to: toEmail, // list of receivers
-        bcc: 'buphmin@gmail.com,popeseveni@gmail.com',
+        cc: 'buphmin@gmail.com,popeseveni@gmail.com',
         subject: subject, // Subject line
         text: message, // plain text body
       };

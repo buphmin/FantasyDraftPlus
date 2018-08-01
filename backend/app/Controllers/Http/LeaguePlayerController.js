@@ -107,6 +107,7 @@ class LeaguePlayerController {
     let userId = auth.user.id;
     let team = queryParams['team'];
 
+
     if(team !== undefined) {
       team = parseInt(team);
       let league = await League

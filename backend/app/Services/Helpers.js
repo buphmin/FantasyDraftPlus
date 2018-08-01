@@ -37,12 +37,17 @@ class Helpers {
 
       const currentUpJson = currentUp.toJSON();
 
+      let easternTime = nextUpJson.start_time.toLocaleString('en-us', {
+        timeZone: 'America/New_York'
+      });
+
+
       const subject = `Your team: ${nextUpJson.team.name} has been placed on the clock`;
       // $body = "Your team: $teamName has been placed on the clock as of $time EST with pick number: $pickNumber. Please login to https://fantasydraftplus.com in order to make your pick.";
       // $body .= "\n\nIf you do not select a player within the 24 hour period then your pick will be forfeit.";
       // $body .= "\n\n$player was selected before you by " . $order->getTeam()->getName();
       const message = `
-      Your team: ${nextUpJson.team.name} has been on the clock as of ${nextUpJson.start_time} EST with pick number: ${nextUpJson.pick_number}.
+      Your team: ${nextUpJson.team.name} has been on the clock as of ${easternTime} EST with pick number: ${nextUpJson.pick_number}.
       Please login to http://fantasydraftplus.net in order to make your pick.
 
       If you do not select a player within the 24 hour period then your pick will be move to the next person. You may contact popeseveni@gmail.com or buphmin@gmail.com
