@@ -7,6 +7,7 @@ class DraftOrderController {
   getDraftOrders({params}) {
     return DraftOrder
       .query()
+      .on('query', console.log)
       .where('league_id', '=', params.league)
       .with('leaguePlayer')
       .with('leaguePlayer.player')
