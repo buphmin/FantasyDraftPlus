@@ -80,9 +80,10 @@ class LeaguePlayerController {
       builder.where('league_player.team_id', '=', team);
     }
 
+
     return builder
       .where('league_player.league_id', '=', params.league)
-      // .groupBy('league_player.player_id')
+      // .groupBy('league_player.id', 'league_player.player_id', 'league_player.team_id')
       .paginate(page, limit);
   }
 
@@ -126,7 +127,11 @@ class LeaguePlayerController {
           }
         }
       } else {
-        await this.handleAddPlayerNormal(leaguePlayerId, userId, team, response);
+        response.status(400);
+
+        return {
+          error: 'The draft is not live and you may not add players.'
+        }
 
       }
     } else {

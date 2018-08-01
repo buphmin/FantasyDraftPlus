@@ -46,7 +46,6 @@ let token = window.localStorage.getItem('token');
 
 let httpClient = new HttpClient({}, token);
 
-
 let dev = true;
 
 const store = new Vuex.Store({

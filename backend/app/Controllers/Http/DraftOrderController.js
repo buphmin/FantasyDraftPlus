@@ -11,6 +11,7 @@ class DraftOrderController {
       .with('leaguePlayer')
       .with('leaguePlayer.player')
       .with('leaguePlayer.player.positions')
+      .with('team')
       .fetch();
   }
 }

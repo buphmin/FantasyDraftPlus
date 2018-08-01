@@ -144,7 +144,7 @@
                                         </td>
                                         <td><span v-if="draftOrder.item.leaguePlayer !== null">{{ draftOrder.item.leaguePlayer.player.positions.map(e => e.id).join(', ')}}</span></td>
                                         <td><span v-if="draftOrder.item.leaguePlayer !== null">{{ draftOrder.item.leaguePlayer.player.nfl_team }}</span></td>
-                                        <td><span v-if="draftOrder.item.leaguePlayer !== null">{{ draftOrder.item.team_id }}</span></td>
+                                        <td><span v-if="draftOrder.item.leaguePlayer !== null">{{ draftOrder.item.team.name }}</span></td>
                                         <td>{{ draftOrder.item.pick_number }}</td>
                                     </template>
                                 </v-data-table>
@@ -169,6 +169,8 @@
     reconnectionDelay: 2000,
     reconnectionAttempts: 3
   });
+
+
   // const ws = Ws('ws://fantasydraftplus.net:3333', {
   //   reconnectionDelay: 2000,
   //   reconnectionAttempts: 3
