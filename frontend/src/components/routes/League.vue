@@ -140,7 +140,7 @@
                                 >
                                     <template slot="items" slot-scope="draftOrder">
                                         <td>
-                                            <span v-if="draftOrder.item.leaguePlayer !== null">{{ draftOrder.item.leaguePlayer.player.name }}</span>
+                                            <span v-if="draftOrder.item.leaguePlayer !== null">{{ draftOrder.item.leaguePlayer !== null ? draftOrder.item.leaguePlayer.player.name : '' }}</span>
                                         </td>
                                         <td><span v-if="draftOrder.item.leaguePlayer !== null">{{ draftOrder.item.leaguePlayer.player.positions.map(e => e.id).join(', ')}}</span></td>
                                         <td><span v-if="draftOrder.item.leaguePlayer !== null">{{ draftOrder.item.leaguePlayer.player.nfl_team }}</span></td>
@@ -292,7 +292,7 @@
     }
 
     getTeamName (leaguePlayer: any) {
-      if (leaguePlayer.team) {
+      if (leaguePlayer.team && leaguePlayer.team.name) {
         return leaguePlayer.team.name
       }
 

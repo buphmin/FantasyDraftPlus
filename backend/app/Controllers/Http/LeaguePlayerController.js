@@ -116,7 +116,7 @@ class LeaguePlayerController {
         .first();
 
       if(league.draft_live === 1) {
-        let isUserOnClock = await this.checkOnClock(team, userId);
+        let isUserOnClock = await this.checkOnClock(team, userId, league.id);
 
         if(isUserOnClock !== false) {
           await this.handleAddPlayerNormal(leaguePlayerId, userId, team, response, league.draft_live === 1, isUserOnClock);
@@ -200,6 +200,7 @@ class LeaguePlayerController {
             .query()
             .whereRaw('end_time is null')
             .whereRaw('player_selected_id is null')
+            .andWhere('league_id', '=', currentLeaguePlayer.league_id)
             .orderBy('pick_number', 'asc')
             .first();
 
@@ -244,11 +245,11 @@ class LeaguePlayerController {
     }
   }
 
-  async checkOnClock(teamId, userId) {
+  async checkOnClock(teamId, userId, leagueId) {
     let rows = await Team
       .query()
       .where('id', '=', teamId)
-      .where('user_id', '=', userId)
+      .andWhere('user_id', '=', userId)
       .fetch();
 
     //if you dont own this team.
@@ -263,6 +264,7 @@ class LeaguePlayerController {
         .query()
         .whereRaw(`(end_time > now() or end_time is null)`)
         .andWhereRaw('player_selected_id is null')
+        .andWhere('league_id', '=', leagueId)
         .orderBy('pick_number', 'asc')
         .first();
       if(order === null) {
