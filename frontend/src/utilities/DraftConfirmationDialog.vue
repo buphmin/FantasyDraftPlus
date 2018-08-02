@@ -45,6 +45,7 @@
     }
 
     updateValue(data: boolean) {
+      console.log('confirmation clicked', data);
       this.$emit('input', data);
     }
   }

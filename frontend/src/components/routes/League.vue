@@ -139,12 +139,17 @@
                                         class="elevation-1"
                                 >
                                     <template slot="items" slot-scope="draftOrder">
+
                                         <td>
                                             <span v-if="draftOrder.item.leaguePlayer !== null">{{ draftOrder.item.leaguePlayer.player.name}}</span>
                                         </td>
-                                        <td><span v-if="draftOrder.item.leaguePlayer !== null">{{ draftOrder.item.leaguePlayer.player.positions.map(e => e.id).join(', ')}}</span></td>
+                                        <td>
+                                            <span v-if="draftOrder.item.leaguePlayer !== null">{{ draftOrder.item.leaguePlayer.player.positions.map(e => e.id).join(', ')}}</span>
+                                        </td>
                                         <td><span v-if="draftOrder.item.leaguePlayer !== null">{{ draftOrder.item.leaguePlayer.player.nfl_team }}</span></td>
-                                        <td><span>{{ draftOrder.item.team.name }}</span></td>
+                                        <td>
+                                            <span v-if="draftOrder.item.team">{{ draftOrder.item.team.name }}</span>
+                                        </td>
                                         <td>{{ draftOrder.item.pick_number }}</td>
                                     </template>
                                 </v-data-table>
@@ -353,6 +358,7 @@
 
 
     async addPlayer({leaguePlayerId}: {leaguePlayerId: number}) {
+      console.log('adding player', leaguePlayerId, this.teamId);
       try {
         await this.$store.state
           .httpClient.put(
@@ -396,9 +402,10 @@
         });
 
         leaguePlayerChannel.on('message', (message) => {
-
+          console.log('got lp refresh');
           this.getLeaguePlayers();
         })
+
 
         draftOrderChannel.on('close', () => {
           this.showWsServerDisconnected = true;

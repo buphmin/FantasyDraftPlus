@@ -49,6 +49,7 @@ let httpClient = new HttpClient({}, token);
 let dev = false;
 
 
+
 const store = new Vuex.Store({
   state: {
     httpClient: httpClient,

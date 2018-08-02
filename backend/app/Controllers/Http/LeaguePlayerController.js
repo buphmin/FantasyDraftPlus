@@ -11,6 +11,7 @@ const Ws = use('Ws');
 const nodemailer = require('nodemailer');
 const Mailservice = require('../../Services/MailService').MailService;
 const Helpers = require('../../Services/Helpers');
+const Logger = use('Logger');
 
 let orderToColumnName = {
   'playerName': 'player.name',
@@ -92,6 +93,7 @@ class LeaguePlayerController {
 
 
   async updateLeaguePlayer({request, params, auth, response}) {
+    Logger.info('updating league player');
 
     // this.sendNextUpEmail(params.league);
     // return Promise.resolve();
@@ -106,6 +108,12 @@ class LeaguePlayerController {
     let leaguePlayerId = params.id;
     let userId = auth.user.id;
     let team = queryParams['team'];
+
+
+    Logger.info(`leaguePLayerId: ${leaguePlayerId}`);
+
+    Logger.info(`userid: ${userId}`);
+    Logger.info(`team: ${team}`);
 
 
     if(team !== undefined) {
