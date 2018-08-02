@@ -46,7 +46,7 @@ let token = window.localStorage.getItem('token');
 
 let httpClient = new HttpClient({}, token);
 
-let dev = false;
+let dev = true;
 
 
 

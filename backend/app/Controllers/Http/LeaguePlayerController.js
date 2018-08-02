@@ -126,9 +126,10 @@ class LeaguePlayerController {
       if(league.draft_live === 1) {
         let isUserOnClock = await this.checkOnClock(team, userId, league.id);
 
+        Logger.info(`isUserOnClock ${isUserOnClock !== false}`);
+
         if(isUserOnClock !== false) {
           await this.handleAddPlayerNormal(leaguePlayerId, userId, team, response, league.draft_live === 1, isUserOnClock);
-          Helpers.sendNextUpEmail(params.league);
         } else {
           response.status(400);
           return {
@@ -162,6 +163,7 @@ class LeaguePlayerController {
 
 
   async handleAddPlayerNormal(leaguePlayerId, userId, newTeamId, response, draftLive = false, draftOrder = null) {
+    Logger.info('adding player');
     let currentLeaguePlayer = await LeaguePlayer
       .query()
       .with('player')
@@ -175,15 +177,22 @@ class LeaguePlayerController {
 
     if(jsonLeaguePlayer.team_id !== null && jsonLeaguePlayer.team.user_id !== userId) {
       response.status(400);
+      response.send({
+        error: `You are not allowed to add a player from another team`
+      });
       return {
         error: `You are not allowed to add a player from another team`
       }
     }
 
     let isWithinPositionLimit = await this.isWithinPositionLimits(jsonLeaguePlayer, newTeamId);
+    Logger.info(`is in limit ${isWithinPositionLimit}`);
 
     if(isWithinPositionLimit !== true) {
       response.status(400);
+      response.send({
+        error: `You have too many ${isWithinPositionLimit}'s on your team`
+      });
       return {
         error: `You have too many ${isWithinPositionLimit}'s on your team`
       }
@@ -194,6 +203,7 @@ class LeaguePlayerController {
         // const transaction = await Database.beginTransaction();
 
         try {
+          Logger.info('saving league player ' + leaguePlayerId);
           await currentLeaguePlayer.save();
 
           draftOrder.team_id = newTeamId;
@@ -220,6 +230,9 @@ class LeaguePlayerController {
             nextOrder.end_time = endTime;
             await nextOrder.save();
           }
+
+
+          Helpers.sendNextUpEmail(currentLeaguePlayer.league_id);
 
           // transaction.commit();
 
@@ -298,18 +311,15 @@ class LeaguePlayerController {
 
     // language=MySQL
     let sql = `
-      select
-       pp.position_group,
-        count(pp.position_group) as position_count
-      from league_player lp
-        JOIN player p ON lp.player_id = p.id
-        JOIN player_player_position position ON p.id = position.player_id
-        JOIN player_position pp ON position.player_position_id = pp.id
-        JOIN team t ON lp.team_id = t.id
-        JOIN league l ON lp.league_id = l.id
-        LEFT JOIN league_position_limit l3 ON l.id = l3.league_id
-      WHERE t.id = ?
-      GROUP BY pp.position_group;
+      select pg.position_group, count(pg.position_group) as position_count from
+        position_group pg
+        join player_position position on pg.position_group = position.position_group
+        join player_player_position ppp on position.id = ppp.player_position_id
+        join player p on ppp.player_id = p.id
+        join league_player player2 on p.id = player2.player_id
+        join team t on player2.team_id = t.id
+      where t.id = ?
+      group by pg.position_group
     `;
 
     let [rows, fields] = await Database

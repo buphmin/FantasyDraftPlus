@@ -170,16 +170,16 @@
   import * as Ws from '@adonisjs/websocket-client'
   declare var require: any;
   const debounce = require('lodash/debounce');
-  // const ws = Ws('ws://localhost:3333', {
-  //   reconnectionDelay: 2000,
-  //   reconnectionAttempts: 3
-  // });
-
-
-  const ws = Ws('ws://fantasydraftplus.net:3333', {
+  const ws = Ws('ws://localhost:3333', {
     reconnectionDelay: 2000,
     reconnectionAttempts: 3
   });
+
+
+  // const ws = Ws('ws://fantasydraftplus.net:3333', {
+  //   reconnectionDelay: 2000,
+  //   reconnectionAttempts: 3
+  // });
 
 
   // ws.on('open', () => {
